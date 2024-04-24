@@ -20,14 +20,22 @@ function renderLastCommit (elementId, commitData) {
   const [username, repo] = elementId.replace('git-widget-', '').split('-')
   element.className = 'repo-widget'
   element.innerHTML = `
+    <button onclick="removeRepo('${elementId}')">X</button>
+    <h3 class="repo-title">${username}/${repo}</h3>
     <div>
-        <button onclick="removeRepo('${elementId}')">X</button>
-        <h3 class="repo-title">${username}/${repo}</h3>
-        <p class="commit-label"><strong>Last Commit:</strong></p>
-        <p class="commit-sha">SHA: ${commitData.sha}</p>
-        <p class="commit-author">Author: ${commitData.commit.author.name}</p>
-        <p class="commit-date">Date: ${commitData.commit.author.date}</p>
-        <p class="commit-message">Message: ${commitData.commit.message}</p>
+        <strong>Last Commit:</strong>
+        <span class="commit-date">${commitData.commit.author.date}</span>
+    </div>
+    <div>
+        <span>SHA:</span>
+        <span class="commit-sha">${commitData.sha}</span>
+    </div>
+    <div>
+        <span>Author:</span>
+        <span class="commit-author">${commitData.commit.author.name}</span>
+    </div>
+    <div class="commit-message-wrapper">
+        <span class="commit-message">${commitData.commit.message}</span>
     </div>
   `
 }
