@@ -24,7 +24,6 @@
 }
 
 .repo-widget button {
-  float: right;
   background-color: #f44336;
   color: white;
   border: none;
@@ -33,9 +32,8 @@
   padding: 5px 10px;
   height: 2rem;
   width: 2rem;
-  align-self: end;
-  margin-bottom: -2rem;
   flex-grow: 0;
+  display: inline-block;
 }
 
 .repo-widget .commit-date {
@@ -53,7 +51,13 @@
 }
 
 .repo-title {
-    margin: 0 0 1rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.repo-title h3 {
+    margin: 0;
 }
 
 .commit-message-wrapper {

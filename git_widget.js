@@ -20,8 +20,10 @@ function renderLastCommit (elementId, commitData) {
   const [username, repo] = elementId.replace('git-widget-', '').split('-')
   element.className = 'repo-widget'
   element.innerHTML = `
-    <button onclick="removeRepo('${elementId}')">X</button>
-    <h3 class="repo-title"><a href="https://github.com/${username}/${repo}" target="_blank">${username}/${repo}</a></h3>
+    <div class="repo-title">
+        <h3><a href="https://github.com/${username}/${repo}" target="_blank">${username}/${repo}</a></h3>
+        <button onclick="removeRepo('${elementId}')">X</button>
+    </div>
     <div>
         <span class="commit-date">${timeAgo(commitData.commit.author.date)} - ${commitData.commit.author.date}</span>
     </div>
