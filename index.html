@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Tracker</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./git_widget.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="add-repo"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const containerElement = document.getElementById('container');
+            const repoList = getRepoList();
+            console.warn(repoList)
+            renderRepos(repoList, containerElement);
+            renderAddRepo("add-repo")
+        });
+    </script>
+</body>
+</html>

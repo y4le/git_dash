@@ -1,0 +1,36 @@
+#container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 20px;
+  gap: 20px;
+}
+
+.repo-widget {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: #fff;
+  width: 300px;
+}
+
+.repo-widget button {
+  float: right;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.repo-widget p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.repo-widget p strong {
+  color: #000;
+}
+
