@@ -14,5 +14,5 @@ You can add and remove repos using the UI or by editing the URL directly. All st
 - [ ] host in gh pages
 - [ ] list reordering
 - [X] links to repo/commit/author
-- [ ] better datetime display
+- [X] better datetime display
 - [ ] sorting

@@ -6,7 +6,6 @@
   gap: 20px;
 }
 
-
 .repo-widget {
   --repo-width: 30rem;
   --repo-height: var(--repo-width);
@@ -32,6 +31,11 @@
   border-radius: 5px;
   cursor: pointer;
   padding: 5px 10px;
+  height: 2rem;
+  width: 2rem;
+  align-self: end;
+  margin-bottom: -2rem;
+  flex-grow: 0;
 }
 
 .repo-widget .commit-date {
@@ -46,6 +50,10 @@
 
 .repo-widget p strong {
     color: #000;
+}
+
+.repo-title {
+    margin: 0 0 1rem 0;
 }
 
 .commit-message-wrapper {

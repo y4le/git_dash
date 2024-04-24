@@ -23,15 +23,12 @@ function renderLastCommit (elementId, commitData) {
     <button onclick="removeRepo('${elementId}')">X</button>
     <h3 class="repo-title"><a href="https://github.com/${username}/${repo}" target="_blank">${username}/${repo}</a></h3>
     <div>
-        <strong>Last Commit:</strong>
-        <span class="commit-date">${commitData.commit.author.date}</span>
+        <span class="commit-date">${timeAgo(commitData.commit.author.date)} - ${commitData.commit.author.date}</span>
     </div>
     <div>
-        <strong>SHA:</strong>
         <a href="${commitData.html_url}" target="_blank" class="commit-sha">${commitData.sha}</a>
     </div>
     <div>
-        <strong>Author:</strong>
         <a href="${commitData.author.html_url}" target="_blank" class="commit-author">${commitData.commit.author.name}</a>
     </div>
     <div class="commit-message-wrapper">
@@ -145,4 +142,26 @@ function updateQueryString (repoList) {
   const urlParams = new URLSearchParams(window.location.search)
   urlParams.set('repoList', JSON.stringify(repoList))
   window.location.search = urlParams.toString()
+}
+
+function timeAgo (input) {
+  // https://stackoverflow.com/a/69122877
+  const date = (input instanceof Date) ? input : new Date(input)
+  const formatter = new Intl.RelativeTimeFormat('en')
+  const ranges = {
+    years: 3600 * 24 * 365,
+    months: 3600 * 24 * 30,
+    weeks: 3600 * 24 * 7,
+    days: 3600 * 24,
+    hours: 3600,
+    minutes: 60,
+    seconds: 1
+  }
+  const secondsElapsed = (date.getTime() - Date.now()) / 1000
+  for (const key in ranges) {
+    if (ranges[key] < Math.abs(secondsElapsed)) {
+      const delta = secondsElapsed / ranges[key]
+      return formatter.format(Math.round(delta), key)
+    }
+  }
 }
