@@ -9,14 +9,10 @@
 </head>
 <body>
     <div id="container"></div>
-    <div id="add-repo"></div>
+    <div id="controls"></div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const containerElement = document.getElementById('container');
-            const repoList = getRepoList();
-            console.warn(repoList)
-            renderRepos(repoList, containerElement);
-            renderAddRepo("add-repo")
+            init();
         });
     </script>
 </body>

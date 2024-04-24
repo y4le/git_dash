@@ -18,20 +18,22 @@ function renderLastCommit (elementId, commitData) {
     return
   }
   const [username, repo] = elementId.replace('git-widget-', '').split('-')
-  element.className = 'repo-widget'
+  const collapsed = new URLSearchParams(window.location.search).get('collapsed') === 'true'
+  element.className = collapsed ? 'repo-widget collapsed' : 'repo-widget'
   element.innerHTML = `
     <div class="repo-title">
         <h3><a href="https://github.com/${username}/${repo}" target="_blank">${username}/${repo}</a></h3>
         <button onclick="removeRepo('${elementId}')">X</button>
     </div>
-    <div>
-        <span class="commit-date">${timeAgo(commitData.commit.author.date)} - ${commitData.commit.author.date}</span>
+    <div class="commit-date">
+        <a href="${commitData.html_url}" target="_blank"class="human-date">${timeAgo(commitData.commit.author.date)}</a>
+        <span class="iso-date"> - ${commitData.commit.author.date}</span>
     </div>
-    <div>
-        <a href="${commitData.html_url}" target="_blank" class="commit-sha">${commitData.sha}</a>
+    <div class="commit-sha">
+        <a href="${commitData.html_url}" target="_blank">${commitData.sha}</a>
     </div>
-    <div>
-        <a href="${commitData.author.html_url}" target="_blank" class="commit-author">${commitData.commit.author.name}</a>
+    <div class="commit-author">
+        <a href="${commitData.author.html_url}" target="_blank">${commitData.commit.author.name}</a>
     </div>
     <div class="commit-message-wrapper">
         <span class="commit-message">${commitData.commit.message}</span>
@@ -80,7 +82,7 @@ function renderRepos (repos, containerElement) {
   })
 }
 
-function renderAddRepo (containerId) {
+function renderControls (containerId) {
   const container = document.getElementById(containerId)
   const inputWrapper = document.createElement('div')
   inputWrapper.className = 'add-repo-wrapper'
@@ -94,6 +96,15 @@ function renderAddRepo (containerId) {
   addButton.textContent = 'Reload' // Default text
   addButton.onclick = () => addRepoFunction(input, container)
 
+  const toggleButton = document.createElement('button')
+  const params = new URLSearchParams(window.location.search)
+  const isCollapsed = params.get('collapsed') === 'true'
+  toggleButton.textContent = isCollapsed ? 'Expand' : 'Collapse'
+  toggleButton.onclick = () => {
+    params.set('collapsed', !isCollapsed)
+    window.location.search = params.toString()
+    toggleButton.textContent = !isCollapsed ? 'Expand' : 'Collapse'
+  }
   input.addEventListener('keyup', event => {
     addButton.textContent = input.value ? 'Add Repo' : 'Reload'
     if (event.key === 'Enter') {
@@ -103,6 +114,7 @@ function renderAddRepo (containerId) {
 
   inputWrapper.appendChild(input)
   inputWrapper.appendChild(addButton)
+  inputWrapper.appendChild(toggleButton)
   container.appendChild(inputWrapper)
 }
 
@@ -166,4 +178,12 @@ function timeAgo (input) {
       return formatter.format(Math.round(delta), key)
     }
   }
+}
+
+function init () {
+  const containerElement = document.getElementById('container')
+  const repoList = getRepoList()
+  console.warn(repoList)
+  renderRepos(repoList, containerElement)
+  renderControls('controls')
 }
