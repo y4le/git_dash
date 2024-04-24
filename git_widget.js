@@ -21,18 +21,18 @@ function renderLastCommit (elementId, commitData) {
   element.className = 'repo-widget'
   element.innerHTML = `
     <button onclick="removeRepo('${elementId}')">X</button>
-    <h3 class="repo-title">${username}/${repo}</h3>
+    <h3 class="repo-title"><a href="https://github.com/${username}/${repo}" target="_blank">${username}/${repo}</a></h3>
     <div>
         <strong>Last Commit:</strong>
         <span class="commit-date">${commitData.commit.author.date}</span>
     </div>
     <div>
-        <span>SHA:</span>
-        <span class="commit-sha">${commitData.sha}</span>
+        <strong>SHA:</strong>
+        <a href="${commitData.html_url}" target="_blank" class="commit-sha">${commitData.sha}</a>
     </div>
     <div>
-        <span>Author:</span>
-        <span class="commit-author">${commitData.commit.author.name}</span>
+        <strong>Author:</strong>
+        <a href="${commitData.author.html_url}" target="_blank" class="commit-author">${commitData.commit.author.name}</a>
     </div>
     <div class="commit-message-wrapper">
         <span class="commit-message">${commitData.commit.message}</span>

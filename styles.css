@@ -6,14 +6,17 @@
   gap: 20px;
 }
 
+
 .repo-widget {
+  --repo-width: 30rem;
+  --repo-height: var(--repo-width);
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   background-color: #fff;
-  width: 30rem;
-  height: 30rem;
+  width: var(--repo-width);
+  max-height: var(--repo-height);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -53,6 +56,10 @@
     overflow-y: auto;
     flex-shrink: 1;
     flex-grow: 1;
+}
+
+.commit-sha {
+    word-break: break-all;
 }
 
 .add-repo-wrapper {
