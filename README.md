@@ -15,3 +15,4 @@ You can add and remove repos using the UI or by editing the URL directly. All st
 - [ ] list reordering
 - [X] links to repo/commit/author
 - [ ] better datetime display
+- [ ] sorting
