@@ -34,3 +34,8 @@
   color: #000;
 }
 
+.add-repo-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
