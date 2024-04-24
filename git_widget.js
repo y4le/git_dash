@@ -84,10 +84,11 @@ function renderAddRepo (containerId) {
   input.className = 'repo-input'
 
   const addButton = document.createElement('button')
-  addButton.textContent = 'Reload'
+  addButton.textContent = 'Reload' // Default text
   addButton.onclick = () => addRepoFunction(input, container)
 
-  input.addEventListener('keypress', event => {
+  input.addEventListener('keyup', event => {
+    addButton.textContent = input.value ? 'Add Repo' : 'Reload'
     if (event.key === 'Enter') {
       addRepoFunction(input, container)
     }
