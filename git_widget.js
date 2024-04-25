@@ -27,7 +27,7 @@ function renderLastCommit (elementId, commitData) {
         <button onclick="removeRepo('${elementId}')">X</button>
     </div>
     <div class="commit-date">
-        <a href="${commitData.html_url}" target="_blank"class="human-date">${timeAgo(commitData.commit.author.date)}</a>
+        <a href="${commitData.html_url}" target="_blank"class="human-date">${Utils.timeAgo(commitData.commit.author.date)}</a>
         <span class="iso-date"> - ${commitData.commit.author.date}</span>
     </div>
     <div class="commit-sha">
@@ -59,7 +59,7 @@ function sortElementsByDate () {
 function removeRepo (elementId) {
   const [username, repo] = elementId.replace('git-widget-', '').split('-')
   const repoString = `${username}/${repo}`
-  removeRepoFromList(repoString)
+  RepoManager.removeRepoFromList(repoString)
   document.getElementById(elementId).remove()
 }
 
@@ -111,7 +111,7 @@ function renderControls (containerId) {
 
   const addButton = document.createElement('button')
   addButton.textContent = 'Reload' // Default text
-  addButton.onclick = () => addRepoFunction(input, container)
+  addButton.onclick = () => userPressAddButton(input, container)
 
   const toggleButton = document.createElement('button')
   const params = new URLSearchParams(window.location.search)
@@ -125,7 +125,7 @@ function renderControls (containerId) {
   input.addEventListener('keyup', event => {
     addButton.textContent = input.value ? 'Add Repo' : 'Reload'
     if (event.key === 'Enter') {
-      addRepoFunction(input, container)
+      userPressAddButton(input, container)
     }
   })
 
@@ -135,13 +135,13 @@ function renderControls (containerId) {
   container.appendChild(inputWrapper)
 }
 
-function addRepoFunction (input, container) {
+function userPressAddButton (input, container) {
   const repoString = input.value
   if (!repoString) {
     location.reload() // Reload the page if the input is empty
   } else if (repoString.includes('/')) {
-    addRepoToList(repoString)
-    const repoList = getRepoList()
+    RepoManager.addRepoToList(repoString)
+    const repoList = RepoManager.getRepoList()
     renderRepos(repoList, container)
     input.value = '' // Clear input after adding
   } else {
@@ -149,57 +149,61 @@ function addRepoFunction (input, container) {
   }
 }
 
-function getRepoList () {
-  const urlParams = new URLSearchParams(window.location.search)
-  const repoListParam = urlParams.get('repoList')
-  return repoListParam ? JSON.parse(repoListParam) : []
-}
-
-function addRepoToList (repoString) {
-  const repoList = getRepoList()
-  if (!repoList.includes(repoString)) {
-    repoList.push(repoString)
-    updateQueryString(repoList)
-  }
-}
-
-function removeRepoFromList (repoString) {
-  let repoList = getRepoList()
-  repoList = repoList.filter(repo => repo !== repoString)
-  updateQueryString(repoList)
-}
-
-function updateQueryString (repoList) {
-  const urlParams = new URLSearchParams(window.location.search)
-  urlParams.set('repoList', JSON.stringify(repoList))
-  window.location.search = urlParams.toString()
-}
-
-function timeAgo (input) {
+class Utils {
+  static timeAgo (input) {
   // https://stackoverflow.com/a/69122877
-  const date = (input instanceof Date) ? input : new Date(input)
-  const formatter = new Intl.RelativeTimeFormat('en')
-  const ranges = {
-    years: 3600 * 24 * 365,
-    months: 3600 * 24 * 30,
-    weeks: 3600 * 24 * 7,
-    days: 3600 * 24,
-    hours: 3600,
-    minutes: 60,
-    seconds: 1
-  }
-  const secondsElapsed = (date.getTime() - Date.now()) / 1000
-  for (const key in ranges) {
-    if (ranges[key] < Math.abs(secondsElapsed)) {
-      const delta = secondsElapsed / ranges[key]
-      return formatter.format(Math.round(delta), key)
+    const date = (input instanceof Date) ? input : new Date(input)
+    const formatter = new Intl.RelativeTimeFormat('en')
+    const ranges = {
+      years: 3600 * 24 * 365,
+      months: 3600 * 24 * 30,
+      weeks: 3600 * 24 * 7,
+      days: 3600 * 24,
+      hours: 3600,
+      minutes: 60,
+      seconds: 1
     }
+    const secondsElapsed = (date.getTime() - Date.now()) / 1000
+    for (const key in ranges) {
+      if (ranges[key] < Math.abs(secondsElapsed)) {
+        const delta = secondsElapsed / ranges[key]
+        return formatter.format(Math.round(delta), key)
+      }
+    }
+  }
+}
+
+class RepoManager {
+  static getRepoList () {
+    const urlParams = new URLSearchParams(window.location.search)
+    const repoListParam = urlParams.get('repoList')
+    return repoListParam ? JSON.parse(repoListParam) : []
+  }
+
+  static addRepoToList (repoString) {
+    const repoList = RepoManager.getRepoList()
+    if (!repoList.includes(repoString)) {
+      repoList.push(repoString)
+      RepoManager.updateQueryString(repoList)
+    }
+  }
+
+  static removeRepoFromList (repoString) {
+    let repoList = RepoManager.getRepoList()
+    repoList = repoList.filter(repo => repo !== repoString)
+    RepoManager.updateQueryString(repoList)
+  }
+
+  static updateQueryString (repoList) {
+    const urlParams = new URLSearchParams(window.location.search)
+    urlParams.set('repoList', JSON.stringify(repoList))
+    window.location.search = urlParams.toString()
   }
 }
 
 function init () {
   const containerElement = document.getElementById('container')
-  const repoList = getRepoList()
+  const repoList = RepoManager.getRepoList()
   console.warn(repoList)
   renderRepos(repoList, containerElement)
   renderControls('controls')
