@@ -23,9 +23,9 @@
 }
 
 .repo-widget button {
-  background-color: #f44336;
-  color: white;
-  border: none;
+  border-color: #f44336;
+  color: #f44336;
+  border: 1;
   border-radius: 5px;
   cursor: pointer;
   padding: 5px 10px;

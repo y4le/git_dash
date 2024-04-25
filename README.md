@@ -13,7 +13,7 @@ You can add and remove repos using the UI or by editing the URL directly. All st
 - [X] store state in query string params
 - [ ] host in gh pages
 - [ ] list reordering
-- [ ] sorting
+- [X] sorting
 - [X] links to repo/commit/author
 - [X] better datetime display
 - [X] collapsed mode

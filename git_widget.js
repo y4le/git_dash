@@ -19,6 +19,7 @@ function renderLastCommit (elementId, commitData) {
   }
   const [username, repo] = elementId.replace('git-widget-', '').split('-')
   const collapsed = new URLSearchParams(window.location.search).get('collapsed') === 'true'
+  const sortByDate = new URLSearchParams(window.location.search).get('sort') === 'date'
   element.className = collapsed ? 'repo-widget collapsed' : 'repo-widget'
   element.innerHTML = `
     <div class="repo-title">
@@ -39,6 +40,20 @@ function renderLastCommit (elementId, commitData) {
         <span class="commit-message">${commitData.commit.message}</span>
     </div>
   `
+
+  if (sortByDate) {
+    element.dataset.commitDate = commitData.commit.author.date
+    sortElementsByDate()
+  }
+}
+
+function sortElementsByDate () {
+  const container = document.querySelector('#container')
+  Array.from(container.children)
+    .sort((a, b) => {
+      return new Date(a.dataset.commitDate) < new Date(b.dataset.commitDate)
+    })
+    .forEach(widget => container.appendChild(widget))
 }
 
 function removeRepo (elementId) {
@@ -55,10 +70,12 @@ function initGitWidget (elementId, username, repo) {
         renderLastCommit(elementId, commits[0])
       } else {
         console.error('No commit data available')
+        removeRepo(elementId)
       }
     })
     .catch(error => {
       console.error('Error fetching commit data:', error)
+      removeRepo(elementId)
     })
 }
 
