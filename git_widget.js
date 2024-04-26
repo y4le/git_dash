@@ -10,11 +10,10 @@ const SORT = {
 }
 
 function init () {
-  const containerElement = document.getElementById('container')
   const repoList = QueryManager.getRepoList()
-  console.warn(`repos: ${repoList}`)
-  renderRepos(repoList, containerElement)
-  Controls.renderControls('controls')
+  renderRepos(repoList, document.getElementById('container'))
+  Controls.renderControls('#controls')
+  Controls.renderFooter('footer')
 }
 
 async function renderRepos (repos, containerElement) {
@@ -212,8 +211,8 @@ class Widget {
 }
 
 class Controls {
-  static renderControls (containerId) {
-    const container = document.getElementById(containerId)
+  static renderControls (containerSelector) {
+    const container = document.querySelector(containerSelector)
     const inputWrapper = document.createElement('div')
     inputWrapper.className = 'add-repo-wrapper'
 
@@ -280,6 +279,31 @@ class Controls {
       window.alert('Please enter a valid "user/repo" string.')
     }
   }
+
+  static renderFooter (footerSelector) {
+    const footer = document.querySelector(footerSelector)
+    const fragment = document.createDocumentFragment()
+
+    const labelDiv = document.createElement('div')
+    labelDiv.textContent = 'Click to copy shareable link:'
+    fragment.appendChild(labelDiv)
+
+    const urlInput = document.createElement('input')
+    urlInput.type = 'text'
+    urlInput.value = QueryManager.buildUrl()
+    urlInput.readOnly = true
+    urlInput.className = 'shareable-link'
+    urlInput.onclick = () => {
+      urlInput.select()
+      navigator.clipboard.writeText(urlInput.value)
+        .then(() => console.log('Text copied to clipboard'))
+        .catch(err => console.error('Failed to copy text: ', err))
+    }
+    fragment.appendChild(urlInput)
+
+    footer.innerHTML = ''
+    footer.appendChild(fragment)
+  }
 }
 
 class QueryManager {
@@ -330,6 +354,12 @@ class QueryManager {
 
   static setSort (sortType) {
     QueryManager.setQueryStringParam('sort', sortType)
+  }
+
+  static buildUrl () {
+    const url = new URL(window.location)
+    url.search = new URLSearchParams(window.location.search)
+    return url.toString()
   }
 }
 

@@ -16,19 +16,19 @@
   flex-direction: column;
   justify-content: center;
   gap: 0;
-  font-size: 1.5rem;
 }
 
 .repo-widget {
   --repo-width: 30rem;
   --repo-height: var(--repo-width);
+  width: var(--repo-width);
+  max-width: 85vw;
+  max-height: var(--repo-height);
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   background-color: #fff;
-  width: var(--repo-width);
-  max-height: var(--repo-height);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -96,3 +96,14 @@
     justify-content: center;
 }
 
+footer {
+  text-align: center;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.shareable-link {
+  max-width: 85vw;
+  flex-grow: 1;
+}
