@@ -1,6 +1,17 @@
+const STYLE = {
+  FULL: 'full',
+  SMALL: 'small',
+  TEXT: 'text'
+}
+
+const SORT = {
+  NONE: 'none',
+  DATE: 'date'
+}
+
 function init () {
   const containerElement = document.getElementById('container')
-  const repoList = RepoManager.getRepoList()
+  const repoList = QueryManager.getRepoList()
   console.warn(`repos: ${repoList}`)
   renderRepos(repoList, containerElement)
   Controls.renderControls('controls')
@@ -17,18 +28,68 @@ async function renderRepos (repos, containerElement) {
   })
 
   const results = await Promise.all(fetchPromises)
-  const sortByDate = new URLSearchParams(window.location.search).get('sort') === 'date'
+  const sortByDate = QueryManager.getSort() === SORT.DATE
   if (sortByDate) {
-    results.sort((a, b) => new Date(a.commitDate) - new Date(b.commitDate))
+    results.sort((a, b) => new Date(a.commitDate) < new Date(b.commitDate))
   }
 
-  const fragment = document.createDocumentFragment()
+  const innerContainerElement = Widget.getContainerElement(QueryManager.getStyle())
   results.forEach(result => {
     if (result.widgetElement) {
-      fragment.appendChild(result.widgetElement)
+      innerContainerElement.appendChild(result.widgetElement)
     }
   })
-  containerElement.appendChild(fragment)
+  containerElement.appendChild(innerContainerElement)
+}
+
+class Repo {
+  constructor (user, repo) {
+    this.user = user
+    this.repo = repo
+    this.repoString = `${user}/${repo}`
+    this.elementId = `git-widget|${encodeURIComponent(user)}|${encodeURIComponent(repo)}`
+  }
+
+  getElementId () {
+    return this.elementId
+  }
+
+  getUser () {
+    return this.user
+  }
+
+  getRepo () {
+    return this.repo
+  }
+
+  getRepoString () {
+    return this.repoString
+  }
+
+  removeRepo () {
+    QueryManager.removeRepoFromList(this.repoString)
+    const element = document.getElementById(this.elementId)
+    if (element) {
+      element.remove()
+    }
+  }
+
+  static fromElementId (elementId) {
+    const parts = elementId.split('|') // git-widget|user|repo
+    const user = decodeURIComponent(parts[1])
+    const repo = decodeURIComponent(parts[2])
+    return new Repo(user, repo)
+  }
+
+  static fromString (repoString) {
+    const [user, repo] = repoString.split('/')
+    return new Repo(user, repo)
+  }
+
+  static removeRepoByElementId (elementId) {
+    const repo = Repo.fromElementId(elementId)
+    repo.removeRepo()
+  }
 }
 
 class Widget {
@@ -65,17 +126,29 @@ class Widget {
   }
 
   render (commitData) {
+    const style = QueryManager.getStyle()
+    switch (style) {
+      case STYLE.TEXT:
+        return this.renderText(commitData)
+      case STYLE.SMALL:
+        return this.renderSmall(commitData)
+      case STYLE.FULL:
+      default:
+        return this.renderFull(commitData)
+    }
+  }
+
+  renderFull (commitData) {
     const element = document.createElement('div')
     element.id = this.repo.getElementId()
-    const collapsed = new URLSearchParams(window.location.search).get('collapsed') === 'true'
-    element.className = collapsed ? 'repo-widget collapsed' : 'repo-widget'
+    element.className = 'repo-widget'
     element.innerHTML = `
       <div class="repo-title">
           <h3><a href="https://github.com/${this.repo.getUser()}/${this.repo.getRepo()}" target="_blank">${this.repo.getRepoString()}</a></h3>
           <button onclick="Repo.removeRepoByElementId('${this.repo.getElementId()}')">X</button>
       </div>
       <div class="commit-date">
-          <a href="${commitData.html_url}" target="_blank" class="human-date">${Utils.timeAgo(commitData.commit.author.date)}</a>
+          <span class="human-date">${Utils.timeAgo(commitData.commit.author.date)}</span>
           <span class="iso-date"> - ${commitData.commit.author.date}</span>
       </div>
       <div class="commit-sha">
@@ -90,55 +163,51 @@ class Widget {
     `
     return element
   }
-}
 
-class Repo {
-  constructor (user, repo) {
-    this.user = user
-    this.repo = repo
-    this.repoString = `${user}/${repo}`
-    this.elementId = `git-widget|${encodeURIComponent(user)}|${encodeURIComponent(repo)}`
+  renderSmall (commitData) {
+    const element = document.createElement('div')
+    element.id = this.repo.getElementId()
+    element.className = 'repo-widget small'
+    element.innerHTML = `
+      <div class="repo-title">
+          <h3><a href="https://github.com/${this.repo.getUser()}/${this.repo.getRepo()}" target="_blank">${this.repo.getRepoString()}</a></h3>
+          <button onclick="Repo.removeRepoByElementId('${this.repo.getElementId()}')">X</button>
+      </div>
+      <div class="commit-info">
+          <span class="human-date">${Utils.timeAgo(commitData.commit.author.date)}</span> - 
+          <a href="${commitData.html_url}" target="_blank">${commitData.sha}</a>
+      </div>
+    `
+    return element
   }
 
-  getElementId () {
-    return this.elementId
+  renderText (commitData) {
+    const element = document.createElement('li')
+    element.id = this.repo.getElementId()
+    element.className = 'repo-text-list-item'
+    element.innerHTML = `
+      <span class="repo-name">
+        <a href="https://github.com/${this.repo.getUser()}/${this.repo.getRepo()}" target="_blank">
+          ${this.repo.getRepoString()}
+        </a>
+      </span> - <span class="commit-date">
+        <a href="${commitData.html_url}" target="_blank">
+          ${Utils.timeAgo(commitData.commit.author.date)}
+        </a>
+      </span> - <a href="#" onclick="Repo.removeRepoByElementId('${this.repo.getElementId()}')">[X]</a>
+    `
+    return element
   }
 
-  getUser () {
-    return this.user
-  }
-
-  getRepo () {
-    return this.repo
-  }
-
-  getRepoString () {
-    return this.repoString
-  }
-
-  removeRepo () {
-    RepoManager.removeRepoFromList(this.repoString)
-    const element = document.getElementById(this.elementId)
-    if (element) {
-      element.remove()
+  static getContainerElement (style) {
+    let element = null
+    if (style === STYLE.TEXT) {
+      element = document.createElement('ul')
+    } else {
+      element = document.createElement('div')
     }
-  }
-
-  static fromElementId (elementId) {
-    const parts = elementId.split('|') // git-widget|user|repo
-    const user = decodeURIComponent(parts[1])
-    const repo = decodeURIComponent(parts[2])
-    return new Repo(user, repo)
-  }
-
-  static fromString (repoString) {
-    const [user, repo] = repoString.split('/')
-    return new Repo(user, repo)
-  }
-
-  static removeRepoByElementId (elementId) {
-    const repo = Repo.fromElementId(elementId)
-    repo.removeRepo()
+    element.className = `widget-container ${style}`
+    return element
   }
 }
 
@@ -148,35 +217,54 @@ class Controls {
     const inputWrapper = document.createElement('div')
     inputWrapper.className = 'add-repo-wrapper'
 
-    const input = document.createElement('input')
-    input.type = 'text'
-    input.placeholder = 'Enter "user/repo" to add or leave empty to reload'
-    input.className = 'repo-input'
+    const input = Controls.createInput()
+    const reloadOrAddButton = Controls.createAddButton(input, container)
+    const styleDropdown = Controls.createStyleDropdown()
 
-    const addButton = document.createElement('button')
-    addButton.textContent = 'Reload' // Default text
-    addButton.onclick = () => Controls.inputButtonListener(input, container)
-
-    const toggleButton = document.createElement('button')
-    const params = new URLSearchParams(window.location.search)
-    const isCollapsed = params.get('collapsed') === 'true'
-    toggleButton.textContent = isCollapsed ? 'Expand' : 'Collapse'
-    toggleButton.onclick = () => {
-      params.set('collapsed', !isCollapsed)
-      window.location.search = params.toString()
-      toggleButton.textContent = !isCollapsed ? 'Expand' : 'Collapse'
-    }
     input.addEventListener('keyup', event => {
-      addButton.textContent = input.value ? 'Add Repo' : 'Reload'
+      reloadOrAddButton.textContent = input.value ? 'Add Repo' : 'Reload'
       if (event.key === 'Enter') {
         Controls.inputButtonListener(input, container)
       }
     })
 
     inputWrapper.appendChild(input)
-    inputWrapper.appendChild(addButton)
-    inputWrapper.appendChild(toggleButton)
+    inputWrapper.appendChild(reloadOrAddButton)
+    inputWrapper.appendChild(styleDropdown)
     container.appendChild(inputWrapper)
+  }
+
+  static createInput () {
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.placeholder = 'Enter "user/repo" to add or leave empty to reload'
+    input.className = 'repo-input'
+    return input
+  }
+
+  static createAddButton (input, container) {
+    const addButton = document.createElement('button')
+    addButton.textContent = 'Reload' // Default text
+    addButton.onclick = () => Controls.inputButtonListener(input, container)
+    return addButton
+  }
+
+  static createStyleDropdown () {
+    const styleDropdown = document.createElement('select')
+    const options = Object.values(STYLE)
+    options.forEach(option => {
+      const optionElement = document.createElement('option')
+      optionElement.value = option
+      optionElement.textContent = option.charAt(0).toUpperCase() + option.slice(1)
+      styleDropdown.appendChild(optionElement)
+    })
+
+    styleDropdown.value = QueryManager.getStyle()
+    styleDropdown.onchange = () => {
+      QueryManager.setStyle(styleDropdown.value)
+    }
+
+    return styleDropdown
   }
 
   static inputButtonListener (input, container) {
@@ -184,8 +272,8 @@ class Controls {
     if (!repoString) {
       window.location.reload() // Reload the page if the input is empty
     } else if (repoString.includes('/')) {
-      RepoManager.addRepoToList(repoString)
-      const repoList = RepoManager.getRepoList()
+      QueryManager.addRepoToList(repoString)
+      const repoList = QueryManager.getRepoList()
       renderRepos(repoList, container)
       input.value = '' // Clear input after adding
     } else {
@@ -194,31 +282,54 @@ class Controls {
   }
 }
 
-class RepoManager {
-  static getRepoList () {
+class QueryManager {
+  static getQueryStringParam (param) {
     const urlParams = new URLSearchParams(window.location.search)
-    const repoListParam = urlParams.get('repoList')
-    return repoListParam ? JSON.parse(repoListParam) : []
+    const value = urlParams.get(param)
+    return value ? (param === 'repoList' ? JSON.parse(value) : value) : null
+  }
+
+  static setQueryStringParam (param, value) {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (param === 'repoList') {
+      value = JSON.stringify(value)
+    }
+    urlParams.set(param, value)
+    window.location.search = urlParams.toString()
+  }
+
+  static getRepoList () {
+    return QueryManager.getQueryStringParam('repoList') || []
   }
 
   static addRepoToList (repoString) {
-    const repoList = RepoManager.getRepoList()
+    const repoList = QueryManager.getRepoList()
     if (!repoList.includes(repoString)) {
       repoList.push(repoString)
-      RepoManager.updateQueryString(repoList)
+      QueryManager.setQueryStringParam('repoList', repoList)
     }
   }
 
   static removeRepoFromList (repoString) {
-    let repoList = RepoManager.getRepoList()
+    let repoList = QueryManager.getRepoList()
     repoList = repoList.filter(repo => repo !== repoString)
-    RepoManager.updateQueryString(repoList)
+    QueryManager.setQueryStringParam('repoList', repoList)
   }
 
-  static updateQueryString (repoList) {
-    const urlParams = new URLSearchParams(window.location.search)
-    urlParams.set('repoList', JSON.stringify(repoList))
-    window.location.search = urlParams.toString()
+  static getStyle () {
+    return QueryManager.getQueryStringParam('style') || STYLE.FULL
+  }
+
+  static setStyle (style) {
+    QueryManager.setQueryStringParam('style', style)
+  }
+
+  static getSort () {
+    return QueryManager.getQueryStringParam('sort') || SORT.NONE
+  }
+
+  static setSort (sortType) {
+    QueryManager.setQueryStringParam('sort', sortType)
   }
 }
 

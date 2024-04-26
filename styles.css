@@ -1,9 +1,22 @@
 #container {
   display: flex;
+  justify-content: center;
+}
+
+.widget-container {
+  display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: center;
   padding: 20px;
   gap: 20px;
+}
+
+.widget-container.text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  font-size: 1.5rem;
 }
 
 .repo-widget {
@@ -23,6 +36,7 @@
 }
 
 .repo-widget button {
+  background: transparent;
   border-color: #f44336;
   color: #f44336;
   border: 1;
@@ -35,8 +49,12 @@
   display: inline-block;
 }
 
+.repo-widget button:hover {
+  background: #f44336;
+  color: #fff;
+}
+
 .commit-date {
-  font-size: 1.2em;
   font-weight: bold;
 }
 
